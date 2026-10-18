@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build caches / outputs that are not part of the published package
+dist/
+*.tsbuildinfo
+.pnpm-store/
+coverage/
+
+# Local logs and temporary files
+*.log
+.tmp-*
+
+# OS files
+.DS_Store
+Thumbs.db

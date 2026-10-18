@@ -1,0 +1,65 @@
+/**
+ * 与 DSH 0.2.x 客户端服务的最小结构视图。
+ *
+ * 只声明本项目实际读取的叶子字段，避免对整个 live 数据对象做拷贝或序列化。
+ * 运行时来自 ctx.sessions、ctx.uiSession、ctx.uiWorkspace 与 ctx.slots，
+ * 类型仅为编译期契约。
+ */
+
+/** 会话列表行的最小结构（对应 SessionSummary，仅取所需字段）。 */
+export interface SessionRowView {
+  displayTitle: string
+  running: boolean
+  blank: boolean
+  parentId?: string
+  /** 粗粒度来源标记；子代理行为 'subagent'。 */
+  origin?: 'subagent'
+}
+
+/** sessions.list 快照的最小结构（对应 SessionListState）。 */
+export interface SessionListState {
+  byId: Record<string, SessionRowView | undefined>
+}
+
+/** 单个会话的 UI 状态（对应 uiSession.sessionStatus 的 SessionStatus）。 */
+export interface SessionStatusView {
+  running?: boolean
+  /** 用户交互等待标记（提问/审批等；出现即代表该会话在等用户输入）。 */
+  pendingInteraction?: unknown
+}
+
+/** uiSession.sessionStatus 快照（ReadonlyMap<SessionId, SessionStatus>）。 */
+export type SessionStatusSnapshot = ReadonlyMap<string, SessionStatusView>
+
+/** 可订阅快照存储（DSH 客户端 store 的公共形态）。 */
+export interface StatusStore {
+  getSnapshot(): SessionStatusSnapshot
+  subscribe(fn: () => void): () => void
+}
+
+/** 客户端 sessions 服务的最小结构（仅本项目用到的方法）。 */
+export interface SessionsFace {
+  list: {
+    getSnapshot(): SessionListState
+    subscribe(fn: () => void): () => void
+  }
+}
+
+/** 客户端 uiSession 服务的最小结构（0.2.x 的会话 UI 状态）。 */
+export interface UiSessionFace {
+  sessionStatus: StatusStore
+}
+
+/** 客户端 uiWorkspace 服务的最小结构（0.2.x 用它打开会话）。 */
+export interface UiWorkspaceFace {
+  openSession(sessionId: string): void
+}
+
+/** 客户端 slots 服务的最小结构（仅本项目用到的方法）。 */
+export interface SlotsFace {
+  inject(key: string, callback: () => unknown): () => void
+  register(
+    options: { name: string; id: string; order?: number; label?: string | (() => string) },
+    component: unknown,
+  ): () => void
+}
